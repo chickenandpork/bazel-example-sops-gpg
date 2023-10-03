@@ -1,0 +1,22 @@
+load("@com_github_masmovil_bazel_rules//toolchains/gpg:gpg_toolchain.bzl", "gpg_toolchain")
+genrule(
+    name="create_key",
+
+    # need to fill something for generated files, so catch changes to this definition
+    srcs = [ "BUILD.bazel" ],
+
+    outs = [ "xx" ],
+    cmd = "$(location //gpg:gpg) --help",
+    tools = ["//gpg:gpg"], 
+)
+
+
+alias(
+    name = "gpg",
+    actual = select({  # really, there should be a DRY toolchain resolution and a single value but let's get past this one first
+        "@platforms//os:osx": "@com_github_masmovil_bazel_rules//toolchains/gpg/lib:gpg_darwin",
+        "@platforms//os:linux": "@com_github_masmovil_bazel_rules//toolchains/gpg/lib:gpg_linux",
+        # no default given yet --> build via foreign_cc ?
+    }),
+)
+
