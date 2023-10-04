@@ -1,0 +1,24 @@
+load("@aspect_bazel_lib//lib:write_source_files.bzl", "write_source_files")
+load(":sops-encrypt.bzl", "sops_encrypt")
+
+exports_files(["sops-encrypt.sh.tpl"])
+
+write_source_files(name = "sops_config",
+    files = { ".sops.yaml": ":generate"},
+)
+
+
+genrule(
+        name = "generate",
+        srcs = ["BUILD.bazel"],  # force creation only when this buildfile changes
+        outs = ["sops.yaml"],
+        cmd = "echo '---' > $@",
+        #toolchains = ["@com_github_masmovil_bazel_rules//toolchains/gpg:toolchain_type"],
+    )
+
+sops_encrypt(
+    name = "enc",
+    srcs = [ ":generate" ],
+    sops_yaml = ":generate",
+    provider = "gpg",
+)
